@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "Storm-Hunt/storm-backend/proto";
+
+package stormhunter;
+
+import "google/api/annotations.proto";
+
+service StormService {
+  rpc StreamStormUpdates(StormRequest) returns (stream StormUpdate) {
+    option (google.api.http) = {
+      get: "/v1/storm/updates"
+    };
+  }
+}
+
+message StormRequest {
+  string region = 1;
+}
+
+message StormUpdate {
+  float latitude = 1;
+  float longitude = 2;
+  int32 wind_speed = 3;
+  string timestamp = 4;
+}

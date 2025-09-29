@@ -1,0 +1,13 @@
+version: v2
+inputs:
+  - directory: C:\src\github.com\KarabasUehal\Storm-Hunt\storm-backend\proto
+clean: true
+plugins:
+  - local: protoc-gen-es
+    opt: target=ts
+    out: src/gen
+    include_imports: true
+  - local: protoc-gen-connect-es
+    opt: target=ts
+    out: src/gen
+    include_imports: true

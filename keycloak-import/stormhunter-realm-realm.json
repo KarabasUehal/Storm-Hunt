@@ -1,0 +1,121 @@
+{
+  "id": "stormhunter-realm",
+  "realm": "stormhunter-realm",
+  "enabled": true,
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": true,
+  "bruteForceProtected": true,
+
+  "clients": [
+    {
+      "clientId": "storm-client",
+      "name": "Storm Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "basic",
+        "email",
+        "aud-client-mapper"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "clientId": "storm-backend",
+      "name": "Storm Backend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "basic",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ],
+
+  "clientScopes": [
+    {
+      "name": "aud-client-mapper",
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "aud",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-resolve-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false",
+            "included.client.audience": "storm-backend"
+          }
+        }
+      ]
+    }
+  ],
+
+  "roles": {
+    "client": {
+      "storm-backend": [
+                    {
+          "name": "audience-role"
+        }
+    ]
+    }
+  },
+
+  "users": [
+    {
+      "username": "karabasuehal",
+      "enabled": true,
+      "email": "test@example.com",
+      "firstName": "Ivan",
+      "lastName": "Koval",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "1998ki31",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [],
+      "clientRoles": {
+        "storm-backend": [
+          "audience-role"
+        ]
+      }
+    }
+  ]
+}

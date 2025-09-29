@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@improbable-eng/grpc-web": "^0.15.0",
+    "google-protobuf": "^3.21.4",
+    "keycloak-js": "^26.2.0"
+  }
+}

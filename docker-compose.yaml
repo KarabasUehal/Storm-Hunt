@@ -1,0 +1,188 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: storm-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: stormdb
+      MYSQL_USER: stormhunter
+      MYSQL_PASSWORD: 31071975
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - storm-network
+
+  redis:
+    image: redis:7
+    container_name: storm-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - storm-network
+
+  keycloak-mysql:
+    image: mysql:8
+    container_name: keycloak-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloakpass
+      MYSQL_ROOT_PASSWORD: rootpass
+    volumes:
+      - keycloak-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - storm-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.2
+    container_name: storm-keycloak
+    environment:
+      KC_DB: mysql
+      KC_DB_URL_HOST: keycloak-mysql
+      KC_DB_URL_PORT: 3306
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloakpass
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: adminpass
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8081
+      KC_HOSTNAME_STRICT: false
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true 
+      KC_HTTP_RELATIVE_PATH: /
+      KC_HOSTNAME_URL: http://localhost:8081
+    ports:
+      - "8081:8080"
+      - "9000:9000"
+    depends_on:
+      keycloak-mysql:
+        condition: service_healthy
+    command: start-dev --import-realm
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./keycloak-import:/opt/keycloak/data/import
+    networks:
+      - storm-network
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000; echo -e \"GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; timeout 1 cat <&3 | grep -q \"HTTP/1.1 200 OK\" || exit 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10  
+      start_period: 30s
+
+  backend:
+    build: ./storm-backend
+    container_name: storm-backend
+    ports:
+      - "50051:50051"
+      - "8082:8081"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DBNAME: stormdb
+      MYSQL_USER: stormhunter
+      MYSQL_PASSWORD: 31071975
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KEYCLOAK_URL: http://storm-keycloak:8080
+      GRPC_PORT: 50051
+      REST_PORT: 8082
+      REDIS_ADDR: redis:6379
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak: 
+        condition: service_healthy
+    volumes:
+      - ./storm-backend:/app
+    networks:
+      - storm-network
+
+  weather-worker:
+    build: ./weather-worker
+    container_name: storm-weather-worker
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      REGIONS: Atlantic,Pacific
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./weather-worker:/app
+    networks:
+      - storm-network
+
+  frontend:
+    build: ./storm-frontend
+    container_name: storm-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_KEYCLOAK_URL: http://localhost:8081
+      REACT_APP_GRPC_PROXY: http://localhost:8080
+    depends_on:
+      - backend
+      - envoy
+      - keycloak
+    volumes:
+      - ./storm-frontend:/app
+      - node_modules:/app/node_modules
+      - ./storm-frontend/src/gen:/app/src/gen
+    networks:
+      - storm-network
+
+  envoy:
+    image: envoyproxy/envoy:v1.31.0
+    container_name: storm-envoy
+    ports:
+      - "8080:8080"
+      - "9901:9901"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+      - ./proto/storm.proto:/etc/storm.proto
+    depends_on:
+      - backend
+      - keycloak
+    command: -c /etc/envoy/envoy.yaml
+    networks:
+      - storm-network
+
+networks:
+  storm-network:
+    driver: bridge
+    name: storm-network
+
+volumes:
+  mysql-data:
+  redis-data:
+  keycloak-mysql-data:
+  keycloak-data:
+  node_modules:

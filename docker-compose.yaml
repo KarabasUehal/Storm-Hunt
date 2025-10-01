@@ -4,10 +4,10 @@ services:
     container_name: storm-mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: stormdb
-      MYSQL_USER: stormhunter
-      MYSQL_PASSWORD: 31071975
-      MYSQL_ROOT_PASSWORD: rootpass
+      - MYSQL_DATABASE=${MYSQL_DBNAME}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -100,17 +100,17 @@ services:
       - "50051:50051"
       - "8082:8081"
     environment:
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      MYSQL_DBNAME: stormdb
-      MYSQL_USER: stormhunter
-      MYSQL_PASSWORD: 31071975
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      KEYCLOAK_URL: http://storm-keycloak:8080
-      GRPC_PORT: 50051
-      REST_PORT: 8082
-      REDIS_ADDR: redis:6379
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_DBNAME=${MYSQL_DBNAME}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - KEYCLOAK_URL=${KEYCLOAK_URL}
+      - GRPC_PORT=${GRPC_PORT}
+      - REST_PORT=${REST_PORT}
+      - REDIS_ADDR=${REDIS_ADDR}
     depends_on:
       mysql:
         condition: service_healthy
@@ -128,10 +128,10 @@ services:
     container_name: storm-weather-worker
     restart: unless-stopped
     environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
-      REGIONS: Atlantic,Pacific
+      - REGIONS=${REGIONS}
     depends_on:
       redis:
         condition: service_healthy

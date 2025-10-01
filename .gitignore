@@ -1,8 +1,12 @@
-<<<<<<< HEAD
 .env
+
 node_modules/
+npm-debug.log*
+
 *.log
+
 Thumbs.db
-=======
-"storm-backend/.env" 
->>>>>>> d7ba0749d58cf4c5c23b33c22a82850b1907fac4
+.DS_Store
+
+.vscode/
+.idea/

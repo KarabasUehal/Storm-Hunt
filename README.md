@@ -22,6 +22,9 @@ REST_PORT=8082
 REDIS_HOST=redis
 REDIS_PORT=6379
 REDIS_ADDR=redis:6379
+RABBITMQ_USER=myuser444
+RABBITMQ_PASS=mypass444
+RABBITMQ_URL=amqp://myuser444:mypass444@rabbitmq:5672/
 REGIONS=Atlantic,Pacific
 
 Make all notes without space beetwen words and signs. Now you need to get your API key - it's fast! Go to: 

@@ -22,27 +22,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type StormRequest struct {
+type StartStreamRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Region        string                 `protobuf:"bytes,1,opt,name=region,proto3" json:"region,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StormRequest) Reset() {
-	*x = StormRequest{}
+func (x *StartStreamRequest) Reset() {
+	*x = StartStreamRequest{}
 	mi := &file_storm_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StormRequest) String() string {
+func (x *StartStreamRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StormRequest) ProtoMessage() {}
+func (*StartStreamRequest) ProtoMessage() {}
 
-func (x *StormRequest) ProtoReflect() protoreflect.Message {
+func (x *StartStreamRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_storm_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -54,42 +55,52 @@ func (x *StormRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StormRequest.ProtoReflect.Descriptor instead.
-func (*StormRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use StartStreamRequest.ProtoReflect.Descriptor instead.
+func (*StartStreamRequest) Descriptor() ([]byte, []int) {
 	return file_storm_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *StormRequest) GetRegion() string {
+func (x *StartStreamRequest) GetRegion() string {
 	if x != nil {
 		return x.Region
 	}
 	return ""
 }
 
-type StormUpdate struct {
+func (x *StartStreamRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type WeatherData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Latitude      float32                `protobuf:"fixed32,1,opt,name=latitude,proto3" json:"latitude,omitempty"`
-	Longitude     float32                `protobuf:"fixed32,2,opt,name=longitude,proto3" json:"longitude,omitempty"`
-	WindSpeed     int32                  `protobuf:"varint,3,opt,name=wind_speed,json=windSpeed,proto3" json:"wind_speed,omitempty"`
-	Timestamp     string                 `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Region        string                 `protobuf:"bytes,1,opt,name=region,proto3" json:"region,omitempty"`
+	Temp          float32                `protobuf:"fixed32,2,opt,name=temp,proto3" json:"temp,omitempty"`
+	Humidity      float32                `protobuf:"fixed32,3,opt,name=humidity,proto3" json:"humidity,omitempty"`
+	Lat           float32                `protobuf:"fixed32,4,opt,name=lat,proto3" json:"lat,omitempty"`
+	Lon           float32                `protobuf:"fixed32,5,opt,name=lon,proto3" json:"lon,omitempty"`
+	WindKmh       int32                  `protobuf:"varint,6,opt,name=wind_kmh,json=windKmh,proto3" json:"wind_kmh,omitempty"`
+	Timestamp     string                 `protobuf:"bytes,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StormUpdate) Reset() {
-	*x = StormUpdate{}
+func (x *WeatherData) Reset() {
+	*x = WeatherData{}
 	mi := &file_storm_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StormUpdate) String() string {
+func (x *WeatherData) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StormUpdate) ProtoMessage() {}
+func (*WeatherData) ProtoMessage() {}
 
-func (x *StormUpdate) ProtoReflect() protoreflect.Message {
+func (x *WeatherData) ProtoReflect() protoreflect.Message {
 	mi := &file_storm_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -101,33 +112,54 @@ func (x *StormUpdate) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StormUpdate.ProtoReflect.Descriptor instead.
-func (*StormUpdate) Descriptor() ([]byte, []int) {
+// Deprecated: Use WeatherData.ProtoReflect.Descriptor instead.
+func (*WeatherData) Descriptor() ([]byte, []int) {
 	return file_storm_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *StormUpdate) GetLatitude() float32 {
+func (x *WeatherData) GetRegion() string {
 	if x != nil {
-		return x.Latitude
+		return x.Region
+	}
+	return ""
+}
+
+func (x *WeatherData) GetTemp() float32 {
+	if x != nil {
+		return x.Temp
 	}
 	return 0
 }
 
-func (x *StormUpdate) GetLongitude() float32 {
+func (x *WeatherData) GetHumidity() float32 {
 	if x != nil {
-		return x.Longitude
+		return x.Humidity
 	}
 	return 0
 }
 
-func (x *StormUpdate) GetWindSpeed() int32 {
+func (x *WeatherData) GetLat() float32 {
 	if x != nil {
-		return x.WindSpeed
+		return x.Lat
 	}
 	return 0
 }
 
-func (x *StormUpdate) GetTimestamp() string {
+func (x *WeatherData) GetLon() float32 {
+	if x != nil {
+		return x.Lon
+	}
+	return 0
+}
+
+func (x *WeatherData) GetWindKmh() int32 {
+	if x != nil {
+		return x.WindKmh
+	}
+	return 0
+}
+
+func (x *WeatherData) GetTimestamp() string {
 	if x != nil {
 		return x.Timestamp
 	}
@@ -138,17 +170,20 @@ var File_storm_proto protoreflect.FileDescriptor
 
 const file_storm_proto_rawDesc = "" +
 	"\n" +
-	"\vstorm.proto\x12\x05proto\x1a\x1cgoogle/api/annotations.proto\"&\n" +
-	"\fStormRequest\x12\x16\n" +
-	"\x06region\x18\x01 \x01(\tR\x06region\"\x84\x01\n" +
-	"\vStormUpdate\x12\x1a\n" +
-	"\blatitude\x18\x01 \x01(\x02R\blatitude\x12\x1c\n" +
-	"\tlongitude\x18\x02 \x01(\x02R\tlongitude\x12\x1d\n" +
-	"\n" +
-	"wind_speed\x18\x03 \x01(\x05R\twindSpeed\x12\x1c\n" +
-	"\ttimestamp\x18\x04 \x01(\tR\ttimestamp2j\n" +
-	"\fStormService\x12Z\n" +
-	"\x12StreamStormUpdates\x12\x13.proto.StormRequest\x1a\x12.proto.StormUpdate\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/storm/updates0\x01B Z\x1eStorm-Hunt/storm-backend/protob\x06proto3"
+	"\vstorm.proto\x12\vstormhunter\x1a\x1cgoogle/api/annotations.proto\"E\n" +
+	"\x12StartStreamRequest\x12\x16\n" +
+	"\x06region\x18\x01 \x01(\tR\x06region\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xb2\x01\n" +
+	"\vWeatherData\x12\x16\n" +
+	"\x06region\x18\x01 \x01(\tR\x06region\x12\x12\n" +
+	"\x04temp\x18\x02 \x01(\x02R\x04temp\x12\x1a\n" +
+	"\bhumidity\x18\x03 \x01(\x02R\bhumidity\x12\x10\n" +
+	"\x03lat\x18\x04 \x01(\x02R\x03lat\x12\x10\n" +
+	"\x03lon\x18\x05 \x01(\x02R\x03lon\x12\x19\n" +
+	"\bwind_kmh\x18\x06 \x01(\x05R\awindKmh\x12\x1c\n" +
+	"\ttimestamp\x18\a \x01(\tR\ttimestamp2v\n" +
+	"\fStormService\x12f\n" +
+	"\vStartStream\x12\x1f.stormhunter.StartStreamRequest\x1a\x18.stormhunter.WeatherData\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/storm/start0\x01B Z\x1eStorm-Hunt/storm-backend/protob\x06proto3"
 
 var (
 	file_storm_proto_rawDescOnce sync.Once
@@ -164,12 +199,12 @@ func file_storm_proto_rawDescGZIP() []byte {
 
 var file_storm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_storm_proto_goTypes = []any{
-	(*StormRequest)(nil), // 0: proto.StormRequest
-	(*StormUpdate)(nil),  // 1: proto.StormUpdate
+	(*StartStreamRequest)(nil), // 0: stormhunter.StartStreamRequest
+	(*WeatherData)(nil),        // 1: stormhunter.WeatherData
 }
 var file_storm_proto_depIdxs = []int32{
-	0, // 0: proto.StormService.StreamStormUpdates:input_type -> proto.StormRequest
-	1, // 1: proto.StormService.StreamStormUpdates:output_type -> proto.StormUpdate
+	0, // 0: stormhunter.StormService.StartStream:input_type -> stormhunter.StartStreamRequest
+	1, // 1: stormhunter.StormService.StartStream:output_type -> stormhunter.WeatherData
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

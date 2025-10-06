@@ -17,6 +17,10 @@ type WeatherResponse struct {
 		Lat float32 `json:"lat"`
 		Lon float32 `json:"lon"`
 	} `json:"coord"`
+	Main struct {
+		Temp     float32 `json:"temp"`
+		Humidity int     `json:"humidity"`
+	} `json:"main"`
 	Wind struct {
 		Speed float32 `json:"speed"`
 	} `json:"wind"`
@@ -24,9 +28,12 @@ type WeatherResponse struct {
 
 // Структура для сериализации данных в кэш
 type CacheData struct {
-	Lat     float32 `json:"lat"`
-	Lon     float32 `json:"lon"`
-	WindKmH int     `json:"wind_kmh"`
+	Lat       float32 `json:"lat"`
+	Lon       float32 `json:"lon"`
+	Temp      float32 `json:"temp"`
+	Humidity  int     `json:"humidity"`
+	WindKmH   int     `json:"wind_kmh"`
+	Timestamp string  `json:"timestamp"`
 }
 
 func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis.Client) error {
@@ -68,9 +75,17 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 	cacheKey := fmt.Sprintf("storm:%s", region) // Формирование ключа для Redis
 
 	cacheData := CacheData{
-		Lat:     data.Coord.Lat,
-		Lon:     data.Coord.Lon,
-		WindKmH: int(data.Wind.Speed * 3.6), // Перевод м/с в км/ч
+		Lat:       data.Coord.Lat,
+		Lon:       data.Coord.Lon,
+		Temp:      data.Main.Temp - 273.15, // перевод из Кельвинов в °C
+		Humidity:  data.Main.Humidity,
+		WindKmH:   int(data.Wind.Speed * 3.6), // Перевод м/с в км/ч
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+	}
+
+	if data.Main.Temp == 0 && data.Main.Humidity == 0 {
+		log.Warn().Str("region", region).Msg("Received empty weather data, skipping cache/publish")
+		return fmt.Errorf("empty weather data")
 	}
 
 	value, err := json.Marshal(cacheData)
@@ -84,11 +99,22 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 		return fmt.Errorf("failed to cache weather for %s: %w", region, err)
 	}
 
+	// Публикуем обновление для стримов
+	channel := fmt.Sprintf("storm_updates:%s", region)
+	if err := rdb.Publish(ctx, channel, value).Err(); err != nil {
+		log.Error().Err(err).Str("region", region).Msg("failed to publish weather update")
+	} else {
+		log.Info().Str("region", region).Msg("Published weather update to Redis channel")
+	}
+
 	log.Info(). // Логирование успешного обновления данных
 			Str("region", region).
 			Float32("lat", data.Coord.Lat).
 			Float32("lon", data.Coord.Lon).
 			Float32("wind_m_s", data.Wind.Speed).
+			Int("humidity", data.Main.Humidity).
+			Float32("temp", data.Main.Temp).
+			Str("timestamp", cacheData.Timestamp).
 			Msg("weather updated and cached")
 	return nil
 }

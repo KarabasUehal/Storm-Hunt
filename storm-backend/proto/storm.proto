@@ -7,20 +7,25 @@ package stormhunter;
 import "google/api/annotations.proto";
 
 service StormService {
-  rpc StreamStormUpdates(StormRequest) returns (stream StormUpdate) {
+  rpc StartStream(StartStreamRequest) returns (stream WeatherData) {
     option (google.api.http) = {
-      get: "/v1/storm/updates"
+      post: "/v1/storm/start"
+      body: "*"
     };
   }
 }
 
-message StormRequest {
+message StartStreamRequest {
   string region = 1;
+  string user_id = 2;
 }
 
-message StormUpdate {
-  float latitude = 1;
-  float longitude = 2;
-  int32 wind_speed = 3;
-  string timestamp = 4;
+message WeatherData {
+  string region = 1;
+  float temp = 2;
+  float humidity = 3;
+  float lat = 4;
+  float lon = 5;
+  int32 wind_kmh = 6;
+  string timestamp = 7;
 }

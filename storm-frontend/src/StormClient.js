@@ -1,53 +1,36 @@
-import { createPromiseClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
-import { StormService } from "./gen/storm_connect.ts";
+import { createPromiseClient } from "@connectrpc/connect";
+import { StormService } from "./gen/storm_connect.js";
 
 const transport = createGrpcWebTransport({
-  baseUrl: "http://localhost:8080",
+  baseUrl: "http://localhost:8080", 
+  useBinaryFormat: true,
   credentials: "include",
 });
 
-const client = createPromiseClient(StormService, transport);
-/**
- * Запускает поток штормов по заданному региону
- *
- * @param {string} region - Название региона 
- * @param {string} token - JWT токен из Keycloak
- * @param {(data: object) => void} callback - Функция, вызываемая при получении каждого сообщения
- * @param {AbortSignal} [signal] - AbortSignal для остановки стрима
- */
+export const client = createPromiseClient(StormService, transport);
 
-export async function streamStormUpdates(region, token, callback, signal) {
+export async function startStream(region, userId, token, onData, signal) {
+  const headers = { Authorization: `Bearer ${token}` };
   try {
-    if (!token) {
-      console.error("No token provided for gRPC-Web request");
-      throw new Error("Authentication token is missing");
-    }
-
-    console.log("Starting gRPC-Web stream with region:", region, "token:", token);
-
-    const headers = new Headers({
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/grpc-web+proto",
-      "x-grpc-web": "1",
-    });
-
-    const stream = client.streamStormUpdates({ region }, { headers, signal });
-
-    for await (const response of stream) {
-      if (signal?.aborted) {
-        console.log(`Stream for ${region} aborted`);
-        break;
-      }
-      console.log("Received stream response:", response);
-      callback(response);
-    }
-  } catch (error) {
-    if (signal?.aborted) {
-      console.log(`Stream for ${region} stopped by user`);
-      return;
-    }
-    console.error("gRPC Stream Error:", error);
-    throw error;
+    const stream = client.startStream({ region, user_id: userId }, { headers, signal });
+    for await (const msg of stream) {
+  console.log("🌪 Received update:", {
+    region: msg.region,
+    temp: msg.temp,
+    humidity: msg.humidity,
+    lat: msg.lat,
+    lon: msg.lon,
+    wind_kmh: msg.wind_kmh ?? msg.windKmh,
+    timestamp: msg.timestamp,
+  });
+  onData(msg);
+}
+  } catch (err) {
+  if (err.message && /cancel/i.test(err.message)) {
+    console.log("⏹️ Stream cancelled by user — normal stop");
+  } else {
+    console.error("🔥 gRPC stream error:", err);
   }
+ }
 }

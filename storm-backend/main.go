@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -15,13 +16,15 @@ import (
 	"Storm-Hunt/storm-backend/database"
 	"Storm-Hunt/storm-backend/keycloak"
 	"Storm-Hunt/storm-backend/middleware"
-	"Storm-Hunt/storm-backend/models"
 	"Storm-Hunt/storm-backend/proto"
+	"Storm-Hunt/storm-backend/rabbit"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // Инициализация проверочных ключей
@@ -36,9 +39,10 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to initialize database")
 	}
-	redis_addr := os.Getenv("REDIS_ADDR")
+	redisHost := os.Getenv("REDIS_HOST")
+	redisPort := os.Getenv("REDIS_PORT")
 	redisClient := redis.NewClient(&redis.Options{ // Создание клиента для Redis
-		Addr:     redis_addr,
+		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
 		Password: "",
 		DB:       0,
 	})
@@ -46,9 +50,35 @@ func main() {
 	if _, err := redisClient.Ping(ctx).Result(); err != nil { // И проверка пинга
 		log.Fatal().Err(err).Msg("Failed to ping Redis:")
 	}
-	log.Info().Msg("Connected to Redis")
+	log.Info().Msgf("Connected to redis with pass: %v, host: %v, port: %v, db: %v", redisClient.Options().Password, redisHost, redisPort, redisClient.Options().DB)
 
-	server := &models.StormServer{DB: database.DB, Redis: redisClient} // Создание экземпляра структуры для сервера с передачей DB и Redis
+	// Инициализация RabbitMQ
+	amqpConn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to connect to RabbitMQ")
+	}
+	amqpChan, err := amqpConn.Channel()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to open RabbitMQ channel")
+	}
+	_, err = amqpChan.QueueDeclare(
+		"weather_tasks",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to declare queue")
+	}
+
+	server := &rabbit.StormServer{
+		DB:       database.DB,
+		Redis:    redisClient,
+		AMQPConn: amqpConn,
+		AMQPChan: amqpChan,
+	} // Создание экземпляра структуры для сервера с передачей DB и Redis
 
 	gRPC_port := os.Getenv("GRPC_PORT")
 	lis, err := net.Listen("tcp", ":"+gRPC_port) // Создание TCP-слушателя для gRPC-сервера
@@ -115,6 +145,17 @@ func main() {
 		log.Error().Err(err).Msg("Failed to close database connection")
 	} else {
 		log.Info().Msg("Database connection closed")
+	}
+
+	if err := amqpChan.Close(); err != nil {
+		log.Error().Err(err).Msg("Failed to close RabbitMQ channel")
+	} else {
+		log.Info().Msg("RabbitMQ channel closed")
+	}
+	if err := amqpConn.Close(); err != nil {
+		log.Error().Err(err).Msg("Failed to close RabbitMQ connection")
+	} else {
+		log.Info().Msg("RabbitMQ connection closed")
 	}
 
 	log.Info().Msg("Server shutdown complete")

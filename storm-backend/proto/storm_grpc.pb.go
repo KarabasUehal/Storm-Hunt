@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StormService_StreamStormUpdates_FullMethodName = "/proto.StormService/StreamStormUpdates"
+	StormService_StartStream_FullMethodName = "/stormhunter.StormService/StartStream"
 )
 
 // StormServiceClient is the client API for StormService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StormServiceClient interface {
-	StreamStormUpdates(ctx context.Context, in *StormRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StormUpdate], error)
+	StartStream(ctx context.Context, in *StartStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WeatherData], error)
 }
 
 type stormServiceClient struct {
@@ -37,13 +37,13 @@ func NewStormServiceClient(cc grpc.ClientConnInterface) StormServiceClient {
 	return &stormServiceClient{cc}
 }
 
-func (c *stormServiceClient) StreamStormUpdates(ctx context.Context, in *StormRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StormUpdate], error) {
+func (c *stormServiceClient) StartStream(ctx context.Context, in *StartStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WeatherData], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &StormService_ServiceDesc.Streams[0], StormService_StreamStormUpdates_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &StormService_ServiceDesc.Streams[0], StormService_StartStream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StormRequest, StormUpdate]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StartStreamRequest, WeatherData]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -54,13 +54,13 @@ func (c *stormServiceClient) StreamStormUpdates(ctx context.Context, in *StormRe
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StormService_StreamStormUpdatesClient = grpc.ServerStreamingClient[StormUpdate]
+type StormService_StartStreamClient = grpc.ServerStreamingClient[WeatherData]
 
 // StormServiceServer is the server API for StormService service.
 // All implementations must embed UnimplementedStormServiceServer
 // for forward compatibility.
 type StormServiceServer interface {
-	StreamStormUpdates(*StormRequest, grpc.ServerStreamingServer[StormUpdate]) error
+	StartStream(*StartStreamRequest, grpc.ServerStreamingServer[WeatherData]) error
 	mustEmbedUnimplementedStormServiceServer()
 }
 
@@ -71,8 +71,8 @@ type StormServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedStormServiceServer struct{}
 
-func (UnimplementedStormServiceServer) StreamStormUpdates(*StormRequest, grpc.ServerStreamingServer[StormUpdate]) error {
-	return status.Errorf(codes.Unimplemented, "method StreamStormUpdates not implemented")
+func (UnimplementedStormServiceServer) StartStream(*StartStreamRequest, grpc.ServerStreamingServer[WeatherData]) error {
+	return status.Errorf(codes.Unimplemented, "method StartStream not implemented")
 }
 func (UnimplementedStormServiceServer) mustEmbedUnimplementedStormServiceServer() {}
 func (UnimplementedStormServiceServer) testEmbeddedByValue()                      {}
@@ -95,28 +95,28 @@ func RegisterStormServiceServer(s grpc.ServiceRegistrar, srv StormServiceServer)
 	s.RegisterService(&StormService_ServiceDesc, srv)
 }
 
-func _StormService_StreamStormUpdates_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StormRequest)
+func _StormService_StartStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StartStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(StormServiceServer).StreamStormUpdates(m, &grpc.GenericServerStream[StormRequest, StormUpdate]{ServerStream: stream})
+	return srv.(StormServiceServer).StartStream(m, &grpc.GenericServerStream[StartStreamRequest, WeatherData]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type StormService_StreamStormUpdatesServer = grpc.ServerStreamingServer[StormUpdate]
+type StormService_StartStreamServer = grpc.ServerStreamingServer[WeatherData]
 
 // StormService_ServiceDesc is the grpc.ServiceDesc for StormService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var StormService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.StormService",
+	ServiceName: "stormhunter.StormService",
 	HandlerType: (*StormServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "StreamStormUpdates",
-			Handler:       _StormService_StreamStormUpdates_Handler,
+			StreamName:    "StartStream",
+			Handler:       _StormService_StartStream_Handler,
 			ServerStreams: true,
 		},
 	},

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "Storm-Hunt/storm-backend/proto";
+option go_package = "Storm-Hunt/storm-backend/stormhunter";
 
 package stormhunter;
 
@@ -9,8 +9,12 @@ import "google/api/annotations.proto";
 service StormService {
   rpc StartStream(StartStreamRequest) returns (stream WeatherData) {
     option (google.api.http) = {
-      post: "/v1/storm/start"
-      body: "*"
+      get: "/v1/storm/start/{region}"
+    };
+  }
+  rpc GetStormWebcams(GetStormWebcamsRequest) returns (GetStormWebcamsResponse) {
+    option (google.api.http) = {
+      get: "/v1/storm/webcams"
     };
   }
 }
@@ -28,4 +32,23 @@ message WeatherData {
   float lon = 5;
   int32 wind_kmh = 6;
   string timestamp = 7;
+}
+
+message Webcam {
+  string id = 1;
+  string name = 2;
+  string stream_url = 3; // HLS URL
+  double lat = 4;
+  double lon = 5;
+  string status = 6; // "live"/"offline"
+}
+
+message GetStormWebcamsRequest {
+  string region = 1; 
+  double latitude = 2; 
+  double longitude = 3;
+}
+
+message GetStormWebcamsResponse {
+  repeated Webcam webcams = 1;
 }

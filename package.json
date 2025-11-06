@@ -2,11 +2,13 @@
   "dependencies": {
     "@improbable-eng/grpc-web": "^0.15.0",
     "google-protobuf": "^3.21.4",
-    "keycloak-js": "^26.2.0"
+    "keycloak-js": "^26.2.0",
+    "react-player": "^2.x.x"
   },
   "devDependencies": {
     "@bufbuild/protoc-gen-connect-es": "^0.13.0",
     "@bufbuild/protoc-gen-es": "^1.10.1",
-    "ts-proto": "^2.7.7"
+    "ts-proto": "^2.7.7",
+    "react-player": "^2.x.x"
   }
 }

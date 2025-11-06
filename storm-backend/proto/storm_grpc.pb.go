@@ -4,7 +4,7 @@
 // - protoc             v6.32.1
 // source: storm.proto
 
-package proto
+package stormhunter
 
 import (
 	context "context"
@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	StormService_StartStream_FullMethodName = "/stormhunter.StormService/StartStream"
+	StormService_StartStream_FullMethodName     = "/stormhunter.StormService/StartStream"
+	StormService_GetStormWebcams_FullMethodName = "/stormhunter.StormService/GetStormWebcams"
 )
 
 // StormServiceClient is the client API for StormService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StormServiceClient interface {
 	StartStream(ctx context.Context, in *StartStreamRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WeatherData], error)
+	GetStormWebcams(ctx context.Context, in *GetStormWebcamsRequest, opts ...grpc.CallOption) (*GetStormWebcamsResponse, error)
 }
 
 type stormServiceClient struct {
@@ -56,11 +58,22 @@ func (c *stormServiceClient) StartStream(ctx context.Context, in *StartStreamReq
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type StormService_StartStreamClient = grpc.ServerStreamingClient[WeatherData]
 
+func (c *stormServiceClient) GetStormWebcams(ctx context.Context, in *GetStormWebcamsRequest, opts ...grpc.CallOption) (*GetStormWebcamsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStormWebcamsResponse)
+	err := c.cc.Invoke(ctx, StormService_GetStormWebcams_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StormServiceServer is the server API for StormService service.
 // All implementations must embed UnimplementedStormServiceServer
 // for forward compatibility.
 type StormServiceServer interface {
 	StartStream(*StartStreamRequest, grpc.ServerStreamingServer[WeatherData]) error
+	GetStormWebcams(context.Context, *GetStormWebcamsRequest) (*GetStormWebcamsResponse, error)
 	mustEmbedUnimplementedStormServiceServer()
 }
 
@@ -73,6 +86,9 @@ type UnimplementedStormServiceServer struct{}
 
 func (UnimplementedStormServiceServer) StartStream(*StartStreamRequest, grpc.ServerStreamingServer[WeatherData]) error {
 	return status.Errorf(codes.Unimplemented, "method StartStream not implemented")
+}
+func (UnimplementedStormServiceServer) GetStormWebcams(context.Context, *GetStormWebcamsRequest) (*GetStormWebcamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStormWebcams not implemented")
 }
 func (UnimplementedStormServiceServer) mustEmbedUnimplementedStormServiceServer() {}
 func (UnimplementedStormServiceServer) testEmbeddedByValue()                      {}
@@ -106,13 +122,36 @@ func _StormService_StartStream_Handler(srv interface{}, stream grpc.ServerStream
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type StormService_StartStreamServer = grpc.ServerStreamingServer[WeatherData]
 
+func _StormService_GetStormWebcams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStormWebcamsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StormServiceServer).GetStormWebcams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StormService_GetStormWebcams_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StormServiceServer).GetStormWebcams(ctx, req.(*GetStormWebcamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StormService_ServiceDesc is the grpc.ServiceDesc for StormService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var StormService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "stormhunter.StormService",
 	HandlerType: (*StormServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetStormWebcams",
+			Handler:    _StormService_GetStormWebcams_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "StartStream",

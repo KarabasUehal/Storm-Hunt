@@ -89,3 +89,114 @@ export declare class WeatherData extends Message<WeatherData> {
   static equals(a: WeatherData | PlainMessage<WeatherData> | undefined, b: WeatherData | PlainMessage<WeatherData> | undefined): boolean;
 }
 
+/**
+ * @generated from message stormhunter.Webcam
+ */
+export declare class Webcam extends Message<Webcam> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * HLS URL
+   *
+   * @generated from field: string stream_url = 3;
+   */
+  streamUrl: string;
+
+  /**
+   * @generated from field: double lat = 4;
+   */
+  lat: number;
+
+  /**
+   * @generated from field: double lon = 5;
+   */
+  lon: number;
+
+  /**
+   * "live"/"offline"
+   *
+   * @generated from field: string status = 6;
+   */
+  status: string;
+
+  constructor(data?: PartialMessage<Webcam>);
+
+  static readonly runtime: typeof proto3;
+  static readonly typeName = "stormhunter.Webcam";
+  static readonly fields: FieldList;
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Webcam;
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Webcam;
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Webcam;
+
+  static equals(a: Webcam | PlainMessage<Webcam> | undefined, b: Webcam | PlainMessage<Webcam> | undefined): boolean;
+}
+
+/**
+ * @generated from message stormhunter.GetStormWebcamsRequest
+ */
+export declare class GetStormWebcamsRequest extends Message<GetStormWebcamsRequest> {
+  /**
+   * @generated from field: string region = 1;
+   */
+  region: string;
+
+  /**
+   * @generated from field: double latitude = 2;
+   */
+  latitude: number;
+
+  /**
+   * @generated from field: double longitude = 3;
+   */
+  longitude: number;
+
+  constructor(data?: PartialMessage<GetStormWebcamsRequest>);
+
+  static readonly runtime: typeof proto3;
+  static readonly typeName = "stormhunter.GetStormWebcamsRequest";
+  static readonly fields: FieldList;
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetStormWebcamsRequest;
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetStormWebcamsRequest;
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetStormWebcamsRequest;
+
+  static equals(a: GetStormWebcamsRequest | PlainMessage<GetStormWebcamsRequest> | undefined, b: GetStormWebcamsRequest | PlainMessage<GetStormWebcamsRequest> | undefined): boolean;
+}
+
+/**
+ * @generated from message stormhunter.GetStormWebcamsResponse
+ */
+export declare class GetStormWebcamsResponse extends Message<GetStormWebcamsResponse> {
+  /**
+   * @generated from field: repeated stormhunter.Webcam webcams = 1;
+   */
+  webcams: Webcam[];
+
+  constructor(data?: PartialMessage<GetStormWebcamsResponse>);
+
+  static readonly runtime: typeof proto3;
+  static readonly typeName = "stormhunter.GetStormWebcamsResponse";
+  static readonly fields: FieldList;
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetStormWebcamsResponse;
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetStormWebcamsResponse;
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetStormWebcamsResponse;
+
+  static equals(a: GetStormWebcamsResponse | PlainMessage<GetStormWebcamsResponse> | undefined, b: GetStormWebcamsResponse | PlainMessage<GetStormWebcamsResponse> | undefined): boolean;
+}
+

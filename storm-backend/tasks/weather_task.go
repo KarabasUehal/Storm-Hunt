@@ -1,4 +1,4 @@
-package handlers
+package tasks
 
 import (
 	"Storm-Hunt/storm-backend/models"
@@ -13,14 +13,13 @@ import (
 
 func SendWeatherTask(w http.ResponseWriter, r *http.Request) {
 	// Парсим запрос (например, JSON: {"region":"Atlantic","user_id":"123"})
-	var task models.WeatherTask
+	var task models.StreamTask
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	// Подключение к RabbitMQ
-	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
+	conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL")) // Подключение к RabbitMQ
 	if err != nil {
 		log.Printf("Failed to connect to RabbitMQ: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -28,7 +27,7 @@ func SendWeatherTask(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	ch, err := conn.Channel()
+	ch, err := conn.Channel() // Открытие канала
 	if err != nil {
 		log.Printf("Failed to open channel: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -36,35 +35,28 @@ func SendWeatherTask(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ch.Close()
 
-	// Декларируем очередь
-	q, err := ch.QueueDeclare(
-		"weather_tasks", // Имя
-		true,            // Durable
-		false,           // Auto-delete
-		false,           // Exclusive
-		false,           // No-wait
-		nil,             // Args
-	)
-	if err != nil {
+	qname := "weather-tasks"
+	dlxName := "dlx.weather"
+	dlxRoutingKey := "failed.weather"
+
+	if err := DeclareQueue(ch, qname, dlxName, dlxRoutingKey); err != nil {
 		log.Printf("Failed to declare queue: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Сериализуем задачу
-	body, err := json.Marshal(task)
+	body, err := json.Marshal(task) // Сериализация задачи
 	if err != nil {
 		log.Printf("Failed to marshal task: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Публикуем в очередь
-	err = ch.Publish(
-		"",     // Exchange
-		q.Name, // Routing key
-		false,  // Mandatory
-		false,  // Immediate
+	err = ch.Publish( // Публикация в очередь
+		"",
+		qname,
+		false,
+		false,
 		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        body,
@@ -76,6 +68,6 @@ func SendWeatherTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK) // Возврат статуса 200 ОК при успехе
 	json.NewEncoder(w).Encode(map[string]string{"message": "Task sent for region: " + task.Region})
 }

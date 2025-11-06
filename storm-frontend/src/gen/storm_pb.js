@@ -32,3 +32,40 @@ export const WeatherData = /*@__PURE__*/ proto3.makeMessageType(
   ],
 );
 
+/**
+ * @generated from message stormhunter.Webcam
+ */
+export const Webcam = /*@__PURE__*/ proto3.makeMessageType(
+  "stormhunter.Webcam",
+  () => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "stream_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "lat", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 5, name: "lon", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 6, name: "status", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ],
+);
+
+/**
+ * @generated from message stormhunter.GetStormWebcamsRequest
+ */
+export const GetStormWebcamsRequest = /*@__PURE__*/ proto3.makeMessageType(
+  "stormhunter.GetStormWebcamsRequest",
+  () => [
+    { no: 1, name: "region", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "latitude", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 3, name: "longitude", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+  ],
+);
+
+/**
+ * @generated from message stormhunter.GetStormWebcamsResponse
+ */
+export const GetStormWebcamsResponse = /*@__PURE__*/ proto3.makeMessageType(
+  "stormhunter.GetStormWebcamsResponse",
+  () => [
+    { no: 1, name: "webcams", kind: "message", T: Webcam, repeated: true },
+  ],
+);
+

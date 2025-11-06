@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { StartStreamRequest, WeatherData } from "./storm_pb.js";
+import { GetStormWebcamsRequest, GetStormWebcamsResponse, StartStreamRequest, WeatherData } from "./storm_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -20,6 +20,15 @@ export declare const StormService: {
       readonly I: typeof StartStreamRequest,
       readonly O: typeof WeatherData,
       readonly kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc stormhunter.StormService.GetStormWebcams
+     */
+    readonly getStormWebcams: {
+      readonly name: "GetStormWebcams",
+      readonly I: typeof GetStormWebcamsRequest,
+      readonly O: typeof GetStormWebcamsResponse,
+      readonly kind: MethodKind.Unary,
     },
   }
 };

@@ -15,6 +15,7 @@ FROM alpine:latest
 WORKDIR /root/
 
 COPY --from=builder /app/storm-backend .
+COPY database/migrations/ ./migrations
 
 EXPOSE 50051
 

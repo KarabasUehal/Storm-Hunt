@@ -1,29 +1,18 @@
-package rabbit
+package models
 
 import (
-	"Storm-Hunt/storm-backend/models"
-	"Storm-Hunt/storm-backend/proto"
-	"database/sql"
+	stormhunter "Storm-Hunt/storm-backend/proto"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type StormServer struct {
-	proto.UnimplementedStormServiceServer
-	DB       *sql.DB
-	Redis    *redis.Client
-	AMQPConn *amqp.Connection
-	AMQPChan *amqp.Channel
-}
-
 // StartStream отправляет задачу в RabbitMQ
-func (s *StormServer) StartStream(req *proto.StartStreamRequest, stream proto.StormService_StartStreamServer) error {
+func (s *StormServer) StartStream(req *stormhunter.StartStreamRequest, stream stormhunter.StormService_StartStreamServer) error {
 	ctx := stream.Context()
 	cacheKey := fmt.Sprintf("storm:%s", req.Region)
 	channel := fmt.Sprintf("storm_updates:%s", req.Region)
@@ -42,11 +31,11 @@ func (s *StormServer) StartStream(req *proto.StartStreamRequest, stream proto.St
 
 	// Сразу проверим кеш — возможно данные уже там
 	if val, err := s.Redis.Get(ctx, cacheKey).Result(); err == nil {
-		var data models.CacheData
+		var data WeatherCacheData
 		if err := json.Unmarshal([]byte(val), &data); err == nil {
 			log.Info().Str("region", req.Region).Msg("Sending cached value immediately")
-			if err := stream.Send(&proto.WeatherData{
-				Region:    req.Region,
+			if err := stream.Send(&stormhunter.WeatherData{
+				Region:    data.Region,
 				Lat:       data.Lat,
 				Lon:       data.Lon,
 				Temp:      data.Temp,
@@ -67,7 +56,7 @@ func (s *StormServer) StartStream(req *proto.StartStreamRequest, stream proto.St
 	}{Region: req.Region, UserID: req.UserId}
 
 	body, _ := json.Marshal(task)
-	if err := s.AMQPChan.Publish("", "weather_tasks", false, false, amqp.Publishing{
+	if err := s.AMQPChan.Publish("", "weather-tasks", false, false, amqp.Publishing{
 		ContentType: "application/json",
 		Body:        body,
 	}); err != nil {
@@ -88,15 +77,14 @@ func (s *StormServer) StartStream(req *proto.StartStreamRequest, stream proto.St
 				log.Error().Str("region", req.Region).Msg("Redis subscription channel closed")
 				return fmt.Errorf("subscription channel closed")
 			}
-			// ...
-		case <-time.After(5 * time.Second):
-			// можно просто проверять кеш периодически, не закрываясь
+
+		case <-time.After(5 * time.Second): // Проверка кэша периодически
 			if val, err := s.Redis.Get(ctx, cacheKey).Result(); err == nil {
-				var data models.CacheData
+				var data WeatherCacheData
 				if err := json.Unmarshal([]byte(val), &data); err == nil {
 					log.Info().Str("region", req.Region).Msg("Sending cached value periodically")
-					if err := stream.Send(&proto.WeatherData{
-						Region:    req.Region,
+					if err := stream.Send(&stormhunter.WeatherData{
+						Region:    data.Region,
 						Lat:       data.Lat,
 						Lon:       data.Lon,
 						Temp:      data.Temp,

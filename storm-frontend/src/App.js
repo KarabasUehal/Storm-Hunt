@@ -29,7 +29,7 @@ const BackgroundVideo = () => (
       minHeight: '100%',
       zIndex: -1,
       objectFit: 'cover',
-      filter: 'brightness(0.6)', // затемнение, чтобы текст был читаемым
+      filter: 'brightness(0.6)', 
     }}
   >
     <source src="/storm-video.mp4" type="video/mp4" />

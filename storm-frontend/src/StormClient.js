@@ -34,3 +34,47 @@ export async function startStream(region, userId, token, onData, signal) {
   }
  }
 }
+
+export async function getStormWebcams(region, latitude, longitude, token) {
+  try {
+    const headers = new Headers({
+      Authorization: `Bearer ${token}`,
+    });
+
+    const response = await client.getStormWebcams(
+      { region, latitude, longitude },
+      { headers }
+    );
+
+    console.log("🎥 gRPC-Webcams response:", response);
+    return response.webcams ?? [];
+  } catch (err) {
+    console.error("gRPC-Webcams Error:", err);
+    throw err;
+  }
+}
+
+export async function sendWebcamsTask(region, userId, cameraID, token) {
+  try {
+    const response = await fetch("http://localhost:8080/send-webcams-task", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ region, user_id: userId, cameraID }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to send webcams task: ${response.status} ${text}`);
+    }
+
+    const data = await response.json();
+    console.log(`✅ Webcams task sent for ${region}, cameraID=${cameraID}:`, data);
+    return data;
+  } catch (err) {
+    console.error(`🔥 Error sending webcams task for ${region}:`, err);
+    throw err;
+  }
+}

@@ -154,3 +154,84 @@
   overflow-y: auto;
   text-align: left;
 }
+
+.webcam-section {
+  margin-top: 30px;
+  border-top: 1px solid #444;
+  padding-top: 20px;
+}
+
+.webcam-list {
+  list-style: none;
+  padding: 0;
+}
+
+.webcam-item {
+  background: #1e1e1e;
+  color: #eee;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-container {
+  margin-top: 20px;
+  background: #111;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.tracker-btn.play {
+  background: #1db954;
+}
+
+.tracker-btn.fetch {
+  background: #2a9df4;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8); /* Полупрозрачный чёрный */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Поверх всего */
+}
+
+.modal-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-image {
+  max-width: 100%;
+  max-height: 90vh; /* Полноэкранный, без урезания */
+  object-fit: contain; /* Показывает всё, без crop */
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}

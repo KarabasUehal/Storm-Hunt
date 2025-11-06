@@ -4,7 +4,7 @@
 // 	protoc        v6.32.1
 // source: storm.proto
 
-package proto
+package stormhunter
 
 import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -166,6 +166,194 @@ func (x *WeatherData) GetTimestamp() string {
 	return ""
 }
 
+type Webcam struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	StreamUrl     string                 `protobuf:"bytes,3,opt,name=stream_url,json=streamUrl,proto3" json:"stream_url,omitempty"` // HLS URL
+	Lat           float64                `protobuf:"fixed64,4,opt,name=lat,proto3" json:"lat,omitempty"`
+	Lon           float64                `protobuf:"fixed64,5,opt,name=lon,proto3" json:"lon,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"` // "live"/"offline"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Webcam) Reset() {
+	*x = Webcam{}
+	mi := &file_storm_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Webcam) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Webcam) ProtoMessage() {}
+
+func (x *Webcam) ProtoReflect() protoreflect.Message {
+	mi := &file_storm_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Webcam.ProtoReflect.Descriptor instead.
+func (*Webcam) Descriptor() ([]byte, []int) {
+	return file_storm_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Webcam) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Webcam) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Webcam) GetStreamUrl() string {
+	if x != nil {
+		return x.StreamUrl
+	}
+	return ""
+}
+
+func (x *Webcam) GetLat() float64 {
+	if x != nil {
+		return x.Lat
+	}
+	return 0
+}
+
+func (x *Webcam) GetLon() float64 {
+	if x != nil {
+		return x.Lon
+	}
+	return 0
+}
+
+func (x *Webcam) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type GetStormWebcamsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Region        string                 `protobuf:"bytes,1,opt,name=region,proto3" json:"region,omitempty"`
+	Latitude      float64                `protobuf:"fixed64,2,opt,name=latitude,proto3" json:"latitude,omitempty"`
+	Longitude     float64                `protobuf:"fixed64,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStormWebcamsRequest) Reset() {
+	*x = GetStormWebcamsRequest{}
+	mi := &file_storm_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStormWebcamsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStormWebcamsRequest) ProtoMessage() {}
+
+func (x *GetStormWebcamsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_storm_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStormWebcamsRequest.ProtoReflect.Descriptor instead.
+func (*GetStormWebcamsRequest) Descriptor() ([]byte, []int) {
+	return file_storm_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetStormWebcamsRequest) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *GetStormWebcamsRequest) GetLatitude() float64 {
+	if x != nil {
+		return x.Latitude
+	}
+	return 0
+}
+
+func (x *GetStormWebcamsRequest) GetLongitude() float64 {
+	if x != nil {
+		return x.Longitude
+	}
+	return 0
+}
+
+type GetStormWebcamsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Webcams       []*Webcam              `protobuf:"bytes,1,rep,name=webcams,proto3" json:"webcams,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStormWebcamsResponse) Reset() {
+	*x = GetStormWebcamsResponse{}
+	mi := &file_storm_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStormWebcamsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStormWebcamsResponse) ProtoMessage() {}
+
+func (x *GetStormWebcamsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_storm_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStormWebcamsResponse.ProtoReflect.Descriptor instead.
+func (*GetStormWebcamsResponse) Descriptor() ([]byte, []int) {
+	return file_storm_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetStormWebcamsResponse) GetWebcams() []*Webcam {
+	if x != nil {
+		return x.Webcams
+	}
+	return nil
+}
+
 var File_storm_proto protoreflect.FileDescriptor
 
 const file_storm_proto_rawDesc = "" +
@@ -181,9 +369,24 @@ const file_storm_proto_rawDesc = "" +
 	"\x03lat\x18\x04 \x01(\x02R\x03lat\x12\x10\n" +
 	"\x03lon\x18\x05 \x01(\x02R\x03lon\x12\x19\n" +
 	"\bwind_kmh\x18\x06 \x01(\x05R\awindKmh\x12\x1c\n" +
-	"\ttimestamp\x18\a \x01(\tR\ttimestamp2v\n" +
-	"\fStormService\x12f\n" +
-	"\vStartStream\x12\x1f.stormhunter.StartStreamRequest\x1a\x18.stormhunter.WeatherData\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/storm/start0\x01B Z\x1eStorm-Hunt/storm-backend/protob\x06proto3"
+	"\ttimestamp\x18\a \x01(\tR\ttimestamp\"\x87\x01\n" +
+	"\x06Webcam\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
+	"\n" +
+	"stream_url\x18\x03 \x01(\tR\tstreamUrl\x12\x10\n" +
+	"\x03lat\x18\x04 \x01(\x01R\x03lat\x12\x10\n" +
+	"\x03lon\x18\x05 \x01(\x01R\x03lon\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\"j\n" +
+	"\x16GetStormWebcamsRequest\x12\x16\n" +
+	"\x06region\x18\x01 \x01(\tR\x06region\x12\x1a\n" +
+	"\blatitude\x18\x02 \x01(\x01R\blatitude\x12\x1c\n" +
+	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\"H\n" +
+	"\x17GetStormWebcamsResponse\x12-\n" +
+	"\awebcams\x18\x01 \x03(\v2\x13.stormhunter.WebcamR\awebcams2\xf5\x01\n" +
+	"\fStormService\x12l\n" +
+	"\vStartStream\x12\x1f.stormhunter.StartStreamRequest\x1a\x18.stormhunter.WeatherData\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/storm/start/{region}0\x01\x12w\n" +
+	"\x0fGetStormWebcams\x12#.stormhunter.GetStormWebcamsRequest\x1a$.stormhunter.GetStormWebcamsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/v1/storm/webcamsB&Z$Storm-Hunt/storm-backend/stormhunterb\x06proto3"
 
 var (
 	file_storm_proto_rawDescOnce sync.Once
@@ -197,19 +400,25 @@ func file_storm_proto_rawDescGZIP() []byte {
 	return file_storm_proto_rawDescData
 }
 
-var file_storm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_storm_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_storm_proto_goTypes = []any{
-	(*StartStreamRequest)(nil), // 0: stormhunter.StartStreamRequest
-	(*WeatherData)(nil),        // 1: stormhunter.WeatherData
+	(*StartStreamRequest)(nil),      // 0: stormhunter.StartStreamRequest
+	(*WeatherData)(nil),             // 1: stormhunter.WeatherData
+	(*Webcam)(nil),                  // 2: stormhunter.Webcam
+	(*GetStormWebcamsRequest)(nil),  // 3: stormhunter.GetStormWebcamsRequest
+	(*GetStormWebcamsResponse)(nil), // 4: stormhunter.GetStormWebcamsResponse
 }
 var file_storm_proto_depIdxs = []int32{
-	0, // 0: stormhunter.StormService.StartStream:input_type -> stormhunter.StartStreamRequest
-	1, // 1: stormhunter.StormService.StartStream:output_type -> stormhunter.WeatherData
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2, // 0: stormhunter.GetStormWebcamsResponse.webcams:type_name -> stormhunter.Webcam
+	0, // 1: stormhunter.StormService.StartStream:input_type -> stormhunter.StartStreamRequest
+	3, // 2: stormhunter.StormService.GetStormWebcams:input_type -> stormhunter.GetStormWebcamsRequest
+	1, // 3: stormhunter.StormService.StartStream:output_type -> stormhunter.WeatherData
+	4, // 4: stormhunter.StormService.GetStormWebcams:output_type -> stormhunter.GetStormWebcamsResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_storm_proto_init() }
@@ -223,7 +432,7 @@ func file_storm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_storm_proto_rawDesc), len(file_storm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

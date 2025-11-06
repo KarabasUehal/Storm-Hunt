@@ -2,7 +2,6 @@ import React from "react";
 import "./StormTracker.css";
 
 const StormMap = ({ region, storm }) => {
-  // Логи для отладки
   console.log(`Rendering StormMap for region: ${region}`, storm);
 
   // Проверяем, что storm существует и содержит валидные данные
@@ -14,6 +13,7 @@ const StormMap = ({ region, storm }) => {
 
       {hasData ? (
         <p>
+          <strong>Region:</strong> {storm.region} <br />
           <strong>Latitude:</strong> {storm.lat} <br />
           <strong>Longitude:</strong> {storm.lon} <br />
           <strong>Temperature:</strong> {storm.temp.toFixed(1)} °C <br />
@@ -24,7 +24,7 @@ const StormMap = ({ region, storm }) => {
       ) : (
         <div>
           <p>No storm data</p>
-          <pre>{JSON.stringify(storm, null, 2)}</pre> {/* Показ объекта для отладки */}
+          <pre>{JSON.stringify(storm, null, 2)}</pre> 
         </div>
       )}
     </div>

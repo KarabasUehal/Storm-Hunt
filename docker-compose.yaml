@@ -1,31 +1,31 @@
-services:
-  mysql:
-    image: mysql:8
-    container_name: storm-mysql
-    restart: unless-stopped
-    environment:
+services:  # Определение всех запускаемых контейнеров (сервисов). Каждый сервис с собственной конфигурацией. 
+  mysql:  # Сервис MySQL 
+    image: mysql:8     # Образ для базы данных MySQL
+    container_name: storm-mysql   # Имя MySQL-контейнера внутри сети докер, для обращений (вместо localhost) 
+    restart: unless-stopped    # Постоянный рестарт в случае падения, пока не будет явной остановки 
+    environment:     # Переменные среды внутри docker-compose 
       - MYSQL_DATABASE=${MYSQL_DBNAME}
-      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_USER=${MYSQL_USER}    # Все данные берутся из переменных файла .env, дабы не светить креды
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    ports:
+    ports:    # Порт для работы сервиса. Левый, порта хоста, маппится на правый, порт докер-контейнера
       - "3306:3306"
-    volumes:
+    volumes:   # Том для хранения данных внутри Docker-контейнера
       - mysql-data:/var/lib/mysql
-    healthcheck:
+    healthcheck:  # Проверка состояния при запуске, если не healthy - то зависимые сервисы тоже не запускаются
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - storm-network
+      interval: 10s   # Провека каждые 10 секунд 
+      timeout: 5s   # 5 секунд на выполнение проверки 
+      retries: 5  # 5 попыток, прежде чем отметить сервис как нездоровый
+    networks:   
+      - storm-network   # Подключение сервиса к созданной внутренней сети для взаимодействия с остальными сервисами
 
-  redis:
-    image: redis:7
-    container_name: storm-redis
+  redis: # Сервис Redis (для записи стриминговых данных о погоде)
+    image: redis:7 
+    container_name: storm-redis 
     ports:
       - "6379:6379"
-    volumes:
+    volumes:  # Свой том для хранения данных
       - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -35,7 +35,7 @@ services:
     networks:
       - storm-network
 
-  keycloak-mysql:
+  keycloak-mysql: # Отдельный сервис MySQL для Keycloak (хранит данные реалмов, клиентов, пользователей и их роли, сессии , токены)
     image: mysql:8
     container_name: keycloak-mysql
     restart: unless-stopped
@@ -44,7 +44,7 @@ services:
       MYSQL_USER: keycloak
       MYSQL_PASSWORD: keycloakpass
       MYSQL_ROOT_PASSWORD: rootpass
-    volumes:
+    volumes:    # Свой том для хранения данных
       - keycloak-mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -54,7 +54,7 @@ services:
     networks:
       - storm-network
 
-  keycloak:
+  keycloak:  # Сам сервис Keycloack для регистрации, аутентификации и авторизации 
     image: quay.io/keycloak/keycloak:26.3.2
     container_name: storm-keycloak
     environment:
@@ -66,24 +66,24 @@ services:
       KC_DB_PASSWORD: keycloakpass
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: adminpass
-      KC_HOSTNAME: localhost
+      KC_HOSTNAME: localhost # Имя хоста, необходимо при включённой проверке имени хоста, когда Keycloack проверяет заголовок Host
       KC_HOSTNAME_PORT: 8081
-      KC_HOSTNAME_STRICT: false
-      KC_PROXY: edge
-      KC_HTTP_ENABLED: true
-      KC_HEALTH_ENABLED: true 
-      KC_HTTP_RELATIVE_PATH: /
+      KC_HOSTNAME_STRICT: false # Отключает строгую проверку хоста (удобно для разработки). В продакшене обязательно true, я понимаю
+      KC_PROXY: edge  # Режим прокси для работы за обратным прокси (В данном случае Envoy)
+      KC_HTTP_ENABLED: true # Включение HTTP... 
+      KC_HEALTH_ENABLED: true # ...и healthcheck-эндпоинтов
+      KC_HTTP_RELATIVE_PATH: / # Корневой путь для HTTP
       KC_HOSTNAME_URL: http://localhost:8081
     ports:
       - "8081:8080"
       - "9000:9000"
-    depends_on:
-      keycloak-mysql:
-        condition: service_healthy
-    command: start-dev --import-realm
+    depends_on:    # Зависимости: сервис зависит от keycloack-mysql (Ведь данные сохраняются именно там) 
+      keycloak-mysql:  
+        condition: service_healthy 
+    command: start-dev --import-realm # Команда для запуска в режиме разработки и импорта конфигурации 
     volumes:
-      - keycloak-data:/opt/keycloak/data
-      - ./keycloak-import:/opt/keycloak/data/import
+      - keycloak-data:/opt/keycloak/data # Свой том для хранения конфигурационных данных, логов, локальных кэшей  (не для данных пользователей)
+      - ./keycloak-import:/opt/keycloak/data/import # Том с JSON-файлом конфигурации. Из ./keycloak-import (директория на хосте) монтируется директория /opt/keycloak/data/import (в контейнере)
     networks:
       - storm-network
     healthcheck:
@@ -91,14 +91,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10  
-      start_period: 30s
+      start_period: 30s # Разрешение задержки до 30 секунд на старт (Keycloak долго инициализируется)
 
-  backend:
+  backend: # Основной бэкенд-сервис, который запускает gRPC + REST
     build: ./storm-backend
     container_name: storm-backend
     ports:
-      - "50051:50051"
-      - "8082:8081"
+      - "50051:50051" # gRPC 
+      - "8082:8081" # REST
     environment:
       - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_PORT=${MYSQL_PORT}
@@ -114,7 +114,7 @@ services:
       - RABBITMQ_USER=myuser444
       - RABBITMQ_PASS=mypass444
       - RABBITMQ_URL=amqp://myuser444:mypass444@rabbitmq:5672/
-    depends_on:
+    depends_on: # Зависит от множества сервисов
       mysql:
         condition: service_healthy
       redis:
@@ -123,12 +123,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    volumes:
+    volumes: # Монтирование папки storm-backend в /app для разработки (чтобы изменения кода сразу применялись)
       - ./storm-backend:/app
     networks:
       - storm-network
 
-  weather-worker:
+  weather-worker: # Вспомогательный бэкенд-сервис для разгрузки, делает запросы к Open API и пишет погоду в Redis
     build: ./weather-worker
     container_name: storm-weather-worker
     restart: unless-stopped
@@ -136,6 +136,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      - WINDY_API_KEY=${WINDY_API_KEY}
       - REGIONS=${REGIONS}
       - RABBITMQ_USER=myuser444
       - RABBITMQ_PASS=mypass444
@@ -146,7 +147,7 @@ services:
       rabbitmq:
         condition: service_healthy
     volumes:
-      - ./weather-worker:/app
+      - ./weather-worker:/app # Монтирование в докер для применения изменений кода
     networks:
       - storm-network
 
@@ -156,16 +157,16 @@ services:
     ports:
       - "3000:3000"
     environment:
-      REACT_APP_KEYCLOAK_URL: http://localhost:8081
-      REACT_APP_GRPC_PROXY: http://localhost:8080
+      REACT_APP_KEYCLOAK_URL: http://localhost:8081 # Редирект на Keycloak для аутентификации
+      REACT_APP_GRPC_PROXY: http://localhost:8080 # Прокси (Envoy) для gRPC
     depends_on:
       - backend
       - envoy
       - keycloak
     volumes:
-      - ./storm-frontend:/app
-      - node_modules:/app/node_modules
-      - ./storm-frontend/src/gen:/app/src/gen
+      - ./storm-frontend:/app # Монтирует код фронтенда
+      - node_modules:/app/node_modules # Отдельный том для node_modules, чтобы не пересобирать зависимости
+      - ./storm-frontend/src/gen:/app/src/gen # Монтирует сгенерированный gRPC-код
     networks:
       - storm-network
 
@@ -173,20 +174,20 @@ services:
     image: envoyproxy/envoy:v1.31.0
     container_name: storm-envoy
     ports:
-      - "8080:8080"
-      - "9901:9901"
+      - "8080:8080" # Порт для gRPC/HTTP-прокси
+      - "9901:9901" # Порт для админ-панели Envoy
     volumes:
-      - ./envoy.yaml:/etc/envoy/envoy.yaml
-      - ./proto/storm.proto:/etc/storm.proto
+      - ./envoy.yaml:/etc/envoy/envoy.yaml # Конфигурация Envoy
+      - ./storm-backend/proto/storm.proto:/etc/storm.proto # Protobuf-файл для gRPC
     depends_on:
       - backend
       - keycloak
-    command: -c /etc/envoy/envoy.yaml
+    command: -c /etc/envoy/envoy.yaml # Запуск Envoy с указанной в envoy.yaml конфигурацией
     networks:
       - storm-network
   
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
+  rabbitmq: # Сервис брокера сообщений
+    image: rabbitmq:3-management-alpine # Образ RabbitMQ с веб-интерфейсом управления
     container_name: storm-rabbitmq
     restart: unless-stopped
     ports:
@@ -205,14 +206,14 @@ services:
     networks:
       - storm-network
 
-networks:
-  storm-network:
-    driver: bridge
-    name: storm-network
+networks: # Cети внутри docker-compose
+  storm-network: # Определение Docker-сети для всех сервисов
+    driver: bridge # Тип сети — мостовая (все контейнеры могут общаться друг с другом по именам)
+    name: storm-network # Имя сети
 
-volumes:
+volumes: # Определение именованных томов для хранения данных
   mysql-data:
   redis-data:
   keycloak-mysql-data:
   keycloak-data:
-  node_modules:
+  node_modules: # Отдельный том для зависимостей фронтенда, чтобы не пересобирать npm install

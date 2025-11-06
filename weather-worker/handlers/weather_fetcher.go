@@ -6,47 +6,23 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"weatherworker/models"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 )
 
-// Структура для парсинга JSON-ответа
-type WeatherResponse struct {
-	Coord struct {
-		Lat float32 `json:"lat"`
-		Lon float32 `json:"lon"`
-	} `json:"coord"`
-	Main struct {
-		Temp     float32 `json:"temp"`
-		Humidity int     `json:"humidity"`
-	} `json:"main"`
-	Wind struct {
-		Speed float32 `json:"speed"`
-	} `json:"wind"`
-}
-
-// Структура для сериализации данных в кэш
-type CacheData struct {
-	Lat       float32 `json:"lat"`
-	Lon       float32 `json:"lon"`
-	Temp      float32 `json:"temp"`
-	Humidity  int     `json:"humidity"`
-	WindKmH   int     `json:"wind_kmh"`
-	Timestamp string  `json:"timestamp"`
-}
-
 func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis.Client) error {
-	city := regionToCity(region) // Преобразование региона в конкретный город
-	if city == "" {
-		log.Error().Str("region", region).Msg("invalid city for region")
-		return fmt.Errorf("invalid city for region %s", region)
-	}
-
-	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", city, apiKey) // URL для получения данных
+	/*	city := RegionToCity(region) // Преобразование региона в конкретный город
+		if city == "" {
+			log.Error().Str("region", region).Msg("invalid city for region")
+			return fmt.Errorf("invalid city for region %s", region)
+		}
+	*/
+	url := fmt.Sprintf("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s", region, apiKey) // URL для получения данных
 
 	client := &http.Client{ // Создание HTTP-клиента для запроса
-		Timeout: 10 * time.Second,
+		Timeout: 20 * time.Second,
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil) // Создание GET-запроса на OpenWeather API
 	if err != nil {
@@ -66,7 +42,7 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 		return fmt.Errorf("unexpected response from OpenWeather for %s: status %d", region, resp.StatusCode)
 	}
 
-	var data WeatherResponse                                         // Переменная для ответа с данными о погоде
+	var data models.WeatherResponse                                  // Переменная для ответа с данными о погоде
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil { // Декодирование ответа в подготовленную структуру
 		log.Error().Err(err).Str("region", region).Msg("failed to decode weather response")
 		return fmt.Errorf("failed to decode weather response for %s: %w", region, err)
@@ -74,7 +50,8 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 
 	cacheKey := fmt.Sprintf("storm:%s", region) // Формирование ключа для Redis
 
-	cacheData := CacheData{
+	cacheData := models.WeatherCacheData{
+		Region:    region,
 		Lat:       data.Coord.Lat,
 		Lon:       data.Coord.Lon,
 		Temp:      data.Main.Temp - 273.15, // перевод из Кельвинов в °C
@@ -88,7 +65,7 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 		return fmt.Errorf("empty weather data")
 	}
 
-	value, err := json.Marshal(cacheData)
+	value, err := json.Marshal(cacheData) // Сериализация данных для кэша
 	if err != nil {
 		log.Error().Err(err).Str("region", region).Msg("failed to marshal cache data")
 		return fmt.Errorf("failed to marshal cache data for %s: %w", region, err)
@@ -99,9 +76,8 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 		return fmt.Errorf("failed to cache weather for %s: %w", region, err)
 	}
 
-	// Публикуем обновление для стримов
-	channel := fmt.Sprintf("storm_updates:%s", region)
-	if err := rdb.Publish(ctx, channel, value).Err(); err != nil {
+	channel := fmt.Sprintf("storm_updates:%s", region)             // Создание канала для передачи данных
+	if err := rdb.Publish(ctx, channel, value).Err(); err != nil { // Публикация обновления для стрима
 		log.Error().Err(err).Str("region", region).Msg("failed to publish weather update")
 	} else {
 		log.Info().Str("region", region).Msg("Published weather update to Redis channel")
@@ -119,7 +95,7 @@ func FetchAndCacheWeather(ctx context.Context, region, apiKey string, rdb *redis
 	return nil
 }
 
-func regionToCity(region string) string { // Для конкретного региона возвращаем конкретный город
+func RegionToCity(region string) string { // Для конкретного региона возвращаем конкретный город
 	switch region {
 	case "Atlantic":
 		return "Miami"

@@ -2,11 +2,11 @@
 // source: storm.proto
 
 /*
-Package proto is a reverse proxy.
+Package stormhunter is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package proto
+package stormhunter
 
 import (
 	"context"
@@ -35,16 +35,30 @@ var (
 	_ = metadata.Join
 )
 
+var filter_StormService_StartStream_0 = &utilities.DoubleArray{Encoding: map[string]int{"region": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_StormService_StartStream_0(ctx context.Context, marshaler runtime.Marshaler, client StormServiceClient, req *http.Request, pathParams map[string]string) (StormService_StartStreamClient, runtime.ServerMetadata, error) {
 	var (
 		protoReq StartStreamRequest
 		metadata runtime.ServerMetadata
+		err      error
 	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["region"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "region")
+	}
+	protoReq.Region, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "region", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StormService_StartStream_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	stream, err := client.StartStream(ctx, &protoReq)
 	if err != nil {
@@ -58,17 +72,72 @@ func request_StormService_StartStream_0(ctx context.Context, marshaler runtime.M
 	return stream, metadata, nil
 }
 
+var filter_StormService_GetStormWebcams_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+
+func request_StormService_GetStormWebcams_0(ctx context.Context, marshaler runtime.Marshaler, client StormServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetStormWebcamsRequest
+		metadata runtime.ServerMetadata
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StormService_GetStormWebcams_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.GetStormWebcams(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_StormService_GetStormWebcams_0(ctx context.Context, marshaler runtime.Marshaler, server StormServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetStormWebcamsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_StormService_GetStormWebcams_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.GetStormWebcams(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 // RegisterStormServiceHandlerServer registers the http handlers for service StormService to "mux".
 // UnaryRPC     :call StormServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterStormServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterStormServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server StormServiceServer) error {
-	mux.Handle(http.MethodPost, pattern_StormService_StartStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_StormService_StartStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
 		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 		return
+	})
+	mux.Handle(http.MethodGet, pattern_StormService_GetStormWebcams_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/stormhunter.StormService/GetStormWebcams", runtime.WithHTTPPathPattern("/v1/storm/webcams"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_StormService_GetStormWebcams_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_StormService_GetStormWebcams_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 
 	return nil
@@ -110,11 +179,11 @@ func RegisterStormServiceHandler(ctx context.Context, mux *runtime.ServeMux, con
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "StormServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterStormServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client StormServiceClient) error {
-	mux.Handle(http.MethodPost, pattern_StormService_StartStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_StormService_StartStream_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/stormhunter.StormService/StartStream", runtime.WithHTTPPathPattern("/v1/storm/start"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/stormhunter.StormService/StartStream", runtime.WithHTTPPathPattern("/v1/storm/start/{region}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -127,13 +196,32 @@ func RegisterStormServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		}
 		forward_StormService_StartStream_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_StormService_GetStormWebcams_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/stormhunter.StormService/GetStormWebcams", runtime.WithHTTPPathPattern("/v1/storm/webcams"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_StormService_GetStormWebcams_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_StormService_GetStormWebcams_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	return nil
 }
 
 var (
-	pattern_StormService_StartStream_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "storm", "start"}, ""))
+	pattern_StormService_StartStream_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "storm", "start", "region"}, ""))
+	pattern_StormService_GetStormWebcams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "storm", "webcams"}, ""))
 )
 
 var (
-	forward_StormService_StartStream_0 = runtime.ForwardResponseStream
+	forward_StormService_StartStream_0     = runtime.ForwardResponseStream
+	forward_StormService_GetStormWebcams_0 = runtime.ForwardResponseMessage
 )
